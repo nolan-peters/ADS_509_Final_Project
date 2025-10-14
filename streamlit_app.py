@@ -16,7 +16,23 @@ def load_models():
     models = joblib.load("ensemble_models.pkl")
     return models["word_model"], models["char_model"]
 
+@st.cache_resource  
+def load_svr_cv():
+    return joblib.load("svr_cv_model.pkl")
+
+@st.cache_resource
+def load_xgboost():
+    return joblib.load("xgboost_model.pkl")
+
+@st.cache_resource
+def load_model_info():
+    return joblib.load("model_info.pkl")
+
 word_model, char_model = load_models()
+svr_cv_model = load_svr_cv()
+xgb_model = load_xgboost()
+model_info = load_model_info()
+
 
 # ------------------------------------------------------
 # MOVIES
@@ -27,6 +43,17 @@ movies = [
     {"title": "Moana 2", "poster": "https://image.tmdb.org/t/p/w500/aLVkiINlIeCkcZIzb7XHzPYgO6L.jpg"},
     {"title": "Mufasa: The Lion King", "poster": "https://image.tmdb.org/t/p/w500/lurEK87kukWNaHd0zYnsi3yzJrs.jpg"}
 ]
+
+# ------------------------------------------------------
+# MODEL SELECTOR
+# ------------------------------------------------------
+
+st.sidebar.header("🤖 Model Selection")
+selected_model = st.sidebar.selectbox(
+    "Choose your prediction model:",
+    options=list(model_info.keys()),
+    format_func=lambda x: model_info[x]
+)
 
 # ------------------------------------------------------
 # STYLE (CSS)
@@ -112,11 +139,27 @@ st.markdown("""
 # ------------------------------------------------------
 # PREDICT FUNCTION
 # ------------------------------------------------------
-def predict_ensemble(texts, clip_range=(1, 10)):
-    p1 = word_model.predict(texts)
-    p2 = char_model.predict(texts)
-    preds = (p1 + p2) / 2.0
-    return np.clip(preds, *clip_range)
+# def predict_ensemble(texts, clip_range=(1, 10)):
+#     p1 = word_model.predict(texts)
+#     p2 = char_model.predict(texts)
+#     preds = (p1 + p2) / 2.0
+#     return np.clip(preds, *clip_range)
+
+def predict_with_selected_model(text, model_name):
+    if model_name == "ensemble_svr":
+        # Your existing ensemble logic
+        word_pred = word_model.predict([text])
+        char_pred = char_model.predict([text])
+        return (word_pred + char_pred) / 2.0
+    
+    elif model_name == "svr_cv":
+        return svr_cv_model.predict([text])
+    
+    elif model_name == "xgboost":
+        return xgb_model.predict([text])
+    
+    else:
+        return word_model.predict([text]) 
 
 # ------------------------------------------------------
 # SESSION STATE
