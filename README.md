@@ -11,7 +11,7 @@ Predict IMDb-style movie ratings (1–10⭐) from written reviews using Natural 
 
 This project analyzes thousands of real movie reviews from **The Movie Database (TMDb)** and predicts a numerical movie rating from 1 to 10 based solely on the written text.  
 
-It uses **two powerful text-based models** (word-level and character-level regressors) and combines them into an **ensemble predictor** to capture both vocabulary semantics and emotional tone.  
+It uses **two powerful text-based models** (word-level and character-level regressors) and combines them into an **ensemble predictor** to capture both vocabulary semantics and emotional tone. SVR trained with cross validation and and XGBoost regressor are also available. 
 
 You can try it live here 👉 **[509-Final-Project Streamlit App](https://509-final-project.streamlit.app/)**  
 
