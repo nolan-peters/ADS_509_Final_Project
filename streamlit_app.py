@@ -12,7 +12,7 @@ st.set_page_config(page_title="🎥 AI Movie Rating Predictor", layout="centered
 # LOAD MODELS
 # ------------------------------------------------------
 @st.cache_resource
-def load_models():
+def load_ensemble():
     models = joblib.load("ensemble_models.pkl")
     return models["word_model"], models["char_model"]
 
@@ -28,7 +28,8 @@ def load_xgboost():
 def load_model_info():
     return joblib.load("model_info.pkl")
 
-word_model, char_model = load_models()
+# Load all models
+word_model, char_model = load_ensemble()
 svr_cv_model = load_svr_cv()
 xgb_model = load_xgboost()
 model_info = load_model_info()
@@ -129,8 +130,35 @@ st.markdown("""
         font-size: 1rem;
         resize: none;
         background-color: rgba(255,255,255,0.1);
-        color: white;
         border: 1px solid rgba(255,255,255,0.3);
+    }
+    /* Make textarea label white */
+    label {
+        color: #ffffff !important;
+    }
+    /* Sidebar labels dark grey like other sidebar text */
+    section[data-testid="stSidebar"] label {
+        color: #49454F !important;
+    }
+    /* Red Button Styling */
+    .stButton > button {
+        background-color: #dc2626 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 24px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+    }
+    .stButton > button:hover {
+        background-color: #b91c1c !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.6) !important;
+    }
+    .stButton > button:active {
+        transform: translateY(0px) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -139,15 +167,9 @@ st.markdown("""
 # ------------------------------------------------------
 # PREDICT FUNCTION
 # ------------------------------------------------------
-# def predict_ensemble(texts, clip_range=(1, 10)):
-#     p1 = word_model.predict(texts)
-#     p2 = char_model.predict(texts)
-#     preds = (p1 + p2) / 2.0
-#     return np.clip(preds, *clip_range)
 
 def predict_with_selected_model(text, model_name):
     if model_name == "ensemble_svr":
-        # Your existing ensemble logic
         word_pred = word_model.predict([text])
         char_pred = char_model.predict([text])
         return (word_pred + char_pred) / 2.0
@@ -159,7 +181,7 @@ def predict_with_selected_model(text, model_name):
         return xgb_model.predict([text])
     
     else:
-        return word_model.predict([text]) 
+        return svr_cv_model.predict([text]) 
 
 # ------------------------------------------------------
 # SESSION STATE
@@ -176,7 +198,7 @@ st.markdown("<h1>🎥 AI Movie Rating Predictor</h1>", unsafe_allow_html=True)
 st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
 
-# Step 1: Movie selection
+# Movie selection
 if not st.session_state.selected_movie:
     st.markdown("<h3>Step 1: Choose the movie you want to review</h3>", unsafe_allow_html=True)
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
@@ -187,9 +209,9 @@ if not st.session_state.selected_movie:
             if st.button(movie["title"]):
                 st.session_state.selected_movie = movie
                 st.session_state.predicted_rating = None
-                st.rerun()  # ✅ Forces rerun immediately, no second click needed
+                st.rerun() 
 
-# Step 2: Review and prediction
+# Review and prediction
 else:
     movie = st.session_state.selected_movie
     st.markdown(f"<h3>Step 2: Write a review for <b>{movie['title']}</b></h3>", unsafe_allow_html=True)
@@ -204,25 +226,38 @@ else:
             st.warning("⚠️ Please write a bit more text for an accurate prediction.")
         else:
             vectorizer = None
-            for name, step in word_model.named_steps.items():
-                if isinstance(step, (TfidfVectorizer, CountVectorizer)):
-                    vectorizer = step
-                    break
+            if selected_model == "ensemble_svr":
+                for name, step in word_model.named_steps.items():
+                    if isinstance(step, (TfidfVectorizer, CountVectorizer)):
+                        vectorizer = step
+                        break
+            elif selected_model == "svr_cv":
+                for name, step in svr_cv_model.named_steps.items():
+                    if isinstance(step, (TfidfVectorizer, CountVectorizer)):
+                        vectorizer = step
+                        break
+            elif selected_model == "xgboost":
+                for name, step in xgb_model.named_steps.items():
+                    if isinstance(step, (TfidfVectorizer, CountVectorizer)):
+                        vectorizer = step
+                        break
+                    
             if vectorizer is not None:
                 vec = vectorizer.transform([cleaned_review])
                 if vec.nnz == 0:
                     st.warning("No known words found — please try a longer or clearer review.")
                 else:
-                    pred = predict_ensemble([cleaned_review])[0]
+                    pred = predict_with_selected_model(cleaned_review, selected_model)[0]
                     st.session_state.predicted_rating = int(np.clip(round(pred), 1, 10))
-                    st.rerun()  # ✅ Makes the result appear immediately
+                    st.rerun()
 
-# Step 3: Show result
+# Show result
 if st.session_state.predicted_rating:
     movie = st.session_state.selected_movie
     st.markdown("---")
     st.markdown(f"<h3>Your predicted rating for <b>{movie['title']}</b> is...</h3>", unsafe_allow_html=True)
     st.markdown(f"<div class='rating'>⭐ {st.session_state.predicted_rating}/10 ⭐</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align: center; color: #ccc; margin-top: 10px;'>Using: {model_info[selected_model]}</div>", unsafe_allow_html=True)
     if st.button("🔄 Try another movie"):
         st.session_state.selected_movie = None
         st.session_state.predicted_rating = None
