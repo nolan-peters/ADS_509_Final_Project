@@ -24,6 +24,8 @@ You can try it live here 👉 **[509-Final-Project Streamlit App](https://509-fi
 | **Word-level Model** | Uses TF-IDF features to capture word importance and context. |
 | **Character-level Model** | Focuses on subword patterns, spelling, and punctuation sentiment. |
 | **Ensemble** | Averages both models’ predictions for smoother, more robust ratings. |
+| **SVR CV** | A Support Vector Regressor trained with standard cross-validation using a word-level feature set. |
+| **XGBoost Regressor** | Powerful gradient boosting model using word-level TF-IDF features for capturing nonlinear signals in review text.                   |
 | **Selector** | Choose from various models to see which provides the best rating based on the review |
 
 The model outputs a **continuous score** between 1 and 10, then rounds to the nearest whole rating.  
@@ -80,7 +82,7 @@ cd 509-Prediction-Review-Final_Project
 ```bash
 pip install -r requirements.txt
 ```
-3️⃣ Run the Flask App:
+3️. Run the Flask App:
 ```bash
 python app.py
 ```
