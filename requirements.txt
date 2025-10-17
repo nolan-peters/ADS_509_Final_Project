@@ -4,3 +4,4 @@ numpy==1.26.4
 scikit-learn==1.6.1
 pandas==2.2.1
 requests==2.31.0
+xgboost>=2.0.0

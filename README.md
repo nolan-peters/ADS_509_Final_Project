@@ -7,7 +7,7 @@ Predict IMDb-style movie ratings (1–10⭐) from written reviews using Natural 
 
 ---
 
-## 🚀 Overview  
+## Overview  
 
 This project analyzes thousands of real movie reviews from **The Movie Database (TMDb)** and predicts a numerical movie rating from 1 to 10 based solely on the written text.  
 
@@ -24,12 +24,13 @@ You can try it live here 👉 **[509-Final-Project Streamlit App](https://509-fi
 | **Word-level Model** | Uses TF-IDF features to capture word importance and context. |
 | **Character-level Model** | Focuses on subword patterns, spelling, and punctuation sentiment. |
 | **Ensemble** | Averages both models’ predictions for smoother, more robust ratings. |
+| **Selector** | Choose from various models to see which provides the best rating based on the review |
 
 The model outputs a **continuous score** between 1 and 10, then rounds to the nearest whole rating.  
 
 ---
 
-## 📊 Example Predictions  
+## Example Predictions  
 
 | Review | Predicted Rating |
 |--------|------------------|
@@ -42,7 +43,7 @@ These results show the model successfully distinguishing between **negative, neu
 
 ---
 
-## 🧰 Tech Stack  
+## Tech Stack  
 
 - **Python 3.12**  
 - **Scikit-Learn** – TF-IDF vectorization & SVR regression  
@@ -58,7 +59,7 @@ These results show the model successfully distinguishing between **negative, neu
 | File | Purpose |
 |------|----------|
 | `Final Project.ipynb` | Main notebook for training and evaluation |
-| `ensemble_models.pkl` | Serialized trained models |
+| `ensemble_models.pkl`, `xgboost_model.pkl`, `svr_cv_model.pkl` | Serialized trained models |
 | `tmdb_reviews.csv` | Raw movie review dataset |
 | `cleaned_tmdb_reviews.csv` | Preprocessed dataset |
 | `app.py` | Flask web app version |
@@ -67,15 +68,15 @@ These results show the model successfully distinguishing between **negative, neu
 
 ---
 
-## ⚙️ Run Locally (Flask Version)
+## Run Locally (Flask Version)
 
-### 1️⃣ Clone the Repository
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/gerardcf1/509-Prediction-Review-Final_Project.git
 cd 509-Prediction-Review-Final_Project
 ```
 
-2️⃣ Install Dependencies:
+2. Install Dependencies:
 ```bash
 pip install -r requirements.txt
 ```
@@ -87,15 +88,15 @@ python app.py
 Then open your browser and go to http://127.0.0.1:5000/
 
 🌐 Run via Streamlit (Recommended)
-1️⃣ Launch Locally
+1. Launch Locally
 ```bash
 streamlit run streamlit_app.py
 ```
-2️⃣ Or Try It Online
+2️. Or Try It Online
 ```bash
-🚀 https://509-final-project.streamlit.app/
+https://509-final-project.streamlit.app/
 ```
-🧩 How It Works
+How It Works...
 
 The user selects a movie and writes a short review.
 
@@ -103,4 +104,4 @@ The app cleans and vectorizes the text (TF-IDF / char-ngrams).
 
 Both models predict a numeric rating.
 
-Their results are averaged → clipped to a 1-10 range → displayed with stars.
+Their results are averaged → clipped to a 1-10 range → displayed with stars. The user can select alternate models from the drop down to see various results. 
